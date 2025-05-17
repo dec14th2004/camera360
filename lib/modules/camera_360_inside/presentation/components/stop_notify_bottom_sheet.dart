@@ -91,7 +91,7 @@ class _StopNotifyBottomSheet extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                       // context.read<StopNotifyCubit>().selectRetry();
+                        context.read<StopNotifyCubit>().selectRetry();
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF00284B),

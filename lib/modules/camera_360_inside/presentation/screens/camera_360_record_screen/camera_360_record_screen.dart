@@ -15,6 +15,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'dart:io';
 
+import '../../components/balance_bar_tutorial.dart';
+
 double degrees(double radians) => radians * 180 / pi;
 
 class Camera360 extends StatefulWidget {
@@ -66,7 +68,10 @@ class Camera360 extends StatefulWidget {
 class _Camera360State extends State<Camera360> with WidgetsBindingObserver, GridPainter {
   Camera360Cubit? _cubit;
   bool isTutorialCompleted = false;
+  final GlobalKey _circleKey = GlobalKey();
+  final GlobalKey _barKey = GlobalKey();
 
+  bool _hasShownTutorial = false;
   @override
   void initState() {
     super.initState();
@@ -84,6 +89,32 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
     WidgetsBinding.instance.removeObserver(this);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
+  }
+
+  void showTutorial(BuildContext context, Camera360Cubit cubit) {
+    initBalanceBarTutorial(
+      context: context,
+      circleKey: _circleKey,
+      barKey: _barKey,
+      showTutorial: cubit.state.showBalanceBarTutorial,
+      onFinish: () {
+        cubit.toggleBalanceBarTutorial(false);
+        setState(() {
+          isTutorialCompleted = true;
+          _hasShownTutorial = true;
+        });
+      },
+      onClickTarget: (target) {
+        print("Clicked on target: ${target.identify}");
+      },
+      onSkip: () {
+        cubit.toggleBalanceBarTutorial(false);
+        setState(() {
+          isTutorialCompleted = true;
+          _hasShownTutorial = true;
+        });
+      },
+    );
   }
 
   @override
@@ -129,6 +160,15 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
             return widget.cameraNotReadyContent ?? const Center(child: CircularProgressIndicator());
           }
 
+          if (!_hasShownTutorial) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (state.showBalanceBarTutorial && state.isInitialized && !isTutorialCompleted) {
+                showTutorial(context, context.read<Camera360Cubit>());
+                _hasShownTutorial = true; // Ngăn gọi lại
+              }
+            });
+          }
+
           return LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               double containerWidth = constraints.maxWidth;
@@ -162,7 +202,7 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
                   .updateHelperDotVerticalPosition(deviceVerticalDeg, containerHeight);
 
               var centeredDotColor = state.deviceInCorrectPosition ? Colors.white.withOpacity(0.7) : Colors.transparent;
-              var helperDotColor = state.deviceInCorrectPosition ? Colors.white : const Color(0xFF00284B);
+              var helperDotColor = state.deviceInCorrectPosition ? Colors.white : const Color(0xFF00284B).withOpacity(0.5);
 
               return Scaffold(
                 backgroundColor: Colors.black,
@@ -196,6 +236,7 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
 
                     if ( state.manualCapture && !state.firstPhotoTaken)
                       BalanceBarIndicator(
+                        key: _barKey,
                         containerWidth: containerWidth,
                         containerHeight: containerHeight,
                         deviceRotationDeg: deviceRotationDeg,
@@ -382,6 +423,7 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
 
                     if (state.firstPhotoTaken || isTutorialCompleted)
                       OrientationHelpers(
+                        key: _circleKey,
                         helperDotPosX: helperDotPosX,
                         helperDotPosY: helperDotPosY,
                         helperDotRadius: Camera360State.helperDotRadius,
