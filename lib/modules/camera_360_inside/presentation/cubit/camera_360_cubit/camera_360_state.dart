@@ -64,6 +64,8 @@ class Camera360State extends Equatable {
   final double targetCenteredDotPosX; // Vị trí mục tiêu X của centered dot
   final double targetCenteredDotPosY; // Vị trí mục tiêu Y của centered dot
 
+  final bool showBalanceBarTutorial;
+
 
   Camera360State({
     this.isInitialized = false,
@@ -108,6 +110,8 @@ class Camera360State extends Equatable {
     this.manualCapture = true,
     this.targetCenteredDotPosX = 0.48, // Tỷ lệ X (0.0 - 1.0) so với containerWidth
     this.targetCenteredDotPosY = 0.5, // Tỷ lệ Y (0.0 - 1.0) so với containerHeight
+
+    this.showBalanceBarTutorial = true,
   }) : absoluteOrientation = absoluteOrientation ?? Vector3.zero();
 
   Camera360State copyWith({
@@ -150,6 +154,8 @@ class Camera360State extends Equatable {
     bool? manualCapture,
     double? targetCenteredDotPosX,
     double? targetCenteredDotPosY,
+
+    bool? showBalanceBarTutorial,
   }) {
     return Camera360State(
       isInitialized: isInitialized ?? this.isInitialized,
@@ -191,6 +197,8 @@ class Camera360State extends Equatable {
       manualCapture: manualCapture ?? this.manualCapture,
       targetCenteredDotPosX: targetCenteredDotPosX ?? this.targetCenteredDotPosX,
       targetCenteredDotPosY: targetCenteredDotPosY ?? this.targetCenteredDotPosY,
+
+      showBalanceBarTutorial: showBalanceBarTutorial ?? this.showBalanceBarTutorial,
     );
   }
 
@@ -235,5 +243,7 @@ class Camera360State extends Equatable {
     manualCapture,
     targetCenteredDotPosX,
     targetCenteredDotPosY,
+
+    showBalanceBarTutorial,
   ];
 }

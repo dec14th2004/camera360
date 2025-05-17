@@ -133,11 +133,17 @@ class Camera360Cubit extends Cubit<Camera360State> {
         isReady: true,
         selectedCameraKey: cameraKey,
         controller: controller,
+        // Đặt lại showBalanceBarTutorial nếu cần, ví dụ chỉ hiển thị lần đầu
+        showBalanceBarTutorial: state.showBalanceBarTutorial,
       ));
     } catch (e) {
       debugPrint("'Panorama360': Error initializing camera: $e");
       emit(state.copyWith(isReady: false, isInitialized: false));
     }
+  }
+
+  void toggleBalanceBarTutorial(bool show) {
+    emit(state.copyWith(showBalanceBarTutorial: show));
   }
 
   Future<void> deleteCache() async {
