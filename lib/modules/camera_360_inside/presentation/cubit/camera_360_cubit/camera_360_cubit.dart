@@ -43,17 +43,17 @@ class Camera360Cubit extends Cubit<Camera360State> {
     this.userHelperTiltRightText,
   }) : super(Camera360State(
     selectedCameraKey: userSelectedCameraKey ?? 0,
-    nrPhotos: userNrPhotos ?? 20,
-    // nrPhotos: userNrPhotos ?? 3,
+    //nrPhotos: userNrPhotos ?? 20,
+     nrPhotos: userNrPhotos ?? 1,
     capturedImageWidth: userCapturedImageWidth ?? 1000,
     capturedImageQuality: userCapturedImageQuality ?? 50,
     deviceVerticalCorrectDeg: userDeviceVerticalCorrectDeg ?? 85,
     loadingText: userLoadingText ?? 'Preparing images...',
     helperText: userHelperText ?? 'Point the camera at the dot',
-   degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
-    // degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 120,
-   degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
-    // degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 120,
+   //degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
+     degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 360,
+   //degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
+     degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 360,
   )) {
     _setupSensors();
     _setupCameras();

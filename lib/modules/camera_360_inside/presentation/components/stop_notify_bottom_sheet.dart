@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/screens/loading_screen/loading_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
 
@@ -89,7 +90,7 @@ class _StopNotifyBottomSheet extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                        context.read<StopNotifyCubit>().selectRetry();
+                       // context.read<StopNotifyCubit>().selectRetry();
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF00284B),
@@ -104,7 +105,16 @@ class _StopNotifyBottomSheet extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        context.read<StopNotifyCubit>().selectComplete();
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(
+                        //     builder: (context) => LoadingScreen(images: images),
+                        //   ),
+                        // );
+
+
+
+                        // context.read<StopNotifyCubit>().selectComplete();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00284B),

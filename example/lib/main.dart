@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/control_overlay/control_overlay_cubit.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/video_ready/video_ready_cubit.dart';
+import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/screens/camera_360_record_screen/camera_360_record_screen.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/screens/ready_recorder_screen/video_ready_screen.dart';
 
 void main() async {
@@ -57,12 +58,15 @@ class _MyAppState extends State<MyApp> {
         builder: (BuildContext context) {
           return MaterialApp(
             home: Scaffold(
-              body: VideoReadyScreen(
-                controlOverlayCubit: context.read<ControlOverlayCubit>(), onCaptureEnded: (Map<String, dynamic> data) async {
-                // Thực hiện xử lý gì đó nếu cần
-                return;
-              },
-              ),
+              // body: VideoReadyScreen(
+              //   controlOverlayCubit: context.read<ControlOverlayCubit>(), onCaptureEnded: (Map<String, dynamic> data) async {
+              //   // Thực hiện xử lý gì đó nếu cần
+              //   return;
+              // },
+              // ),
+              body: Camera360(onCaptureEnded:  (Map<String, dynamic> data) async {
+              return;
+            },),
             ),
           );
         },

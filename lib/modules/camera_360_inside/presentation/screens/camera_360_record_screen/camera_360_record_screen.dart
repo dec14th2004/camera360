@@ -266,16 +266,16 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
                                     height: 75,
                                   ),
                                 ),
-                              if (widget.cameraSelectorShow)
-                                CameraSelector(
-                                  cameras: state.cameras,
-                                  selectedCameraKey: state.selectedCameraKey,
-                                  infoPopUpContent: widget.cameraSelectorInfoPopUpContent,
-                                  infoPopUpShow: widget.cameraSelectorInfoPopUpShow,
-                                  onCameraChanged: (cameraKey) {
-                                    context.read<Camera360Cubit>().selectCamera(cameraKey);
-                                  },
-                                ),
+                             // if (widget.cameraSelectorShow)
+                                // CameraSelector(
+                                //   cameras: state.cameras,
+                                //   selectedCameraKey: state.selectedCameraKey,
+                                //   infoPopUpContent: widget.cameraSelectorInfoPopUpContent,
+                                //   infoPopUpShow: widget.cameraSelectorInfoPopUpShow,
+                                //   onCameraChanged: (cameraKey) {
+                                //     context.read<Camera360Cubit>().selectCamera(cameraKey);
+                                //   },
+                                // ),
                             ],
                           ),
                         ),
