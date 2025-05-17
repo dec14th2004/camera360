@@ -1,10 +1,12 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_plugin_camera360/helper/image_panorama_controller.dart';
+import 'package:flutter_plugin_camera360/modules/camera_360_inside/domain/use_cases/upload_image_usecase.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/control_overlay/control_overlay_cubit.dart';
+import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/video_loading/loading_cubit.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/video_ready/video_ready_cubit.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/screens/camera_360_record_screen/camera_360_record_screen.dart';
-import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/screens/ready_recorder_screen/video_ready_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +55,11 @@ class _MyAppState extends State<MyApp> {
             cameras: widget.cameras,
           ),
         ),
+        BlocProvider(
+          create: (context) => LoadingCubit(
+            images: [],
+            uploadImageUseCase: getIt.get<UploadImageUsecase>()
+        ))
       ],
       child: Builder(
         builder: (BuildContext context) {

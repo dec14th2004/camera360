@@ -2,7 +2,7 @@ import 'package:app_util/helpers/api_config.dart';
 import 'package:app_util/helpers/app_localization.dart';
 import 'package:app_util/services/api_service.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_plugin_camera360/di.dart';
+import 'package:flutter_plugin_camera360/modules/camera_360_inside/di.dart';
 import 'package:get_it/get_it.dart';
 
 import 'api_path.dart';

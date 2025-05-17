@@ -5,6 +5,7 @@ import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io';
 
+import '../cubit/video_loading/loading_cubit.dart';
 import '../cubit/video_stop_notify/stop_notify_cubit.dart';
 
 
@@ -105,16 +106,13 @@ class _StopNotifyBottomSheet extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigator.push(
-                        //   context,
-                        //   MaterialPageRoute(
-                        //     builder: (context) => LoadingScreen(images: images),
-                        //   ),
-                        // );
-
-
-
-                        // context.read<StopNotifyCubit>().selectComplete();
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoadingScreen(images: context.read<LoadingCubit>().images),
+                          ),
+                        );
+                        context.read<StopNotifyCubit>().selectComplete();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00284B),

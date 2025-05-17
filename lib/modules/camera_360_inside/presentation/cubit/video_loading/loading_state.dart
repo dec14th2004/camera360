@@ -6,15 +6,12 @@ class LoadingState extends Equatable {
 
   const LoadingState({required this.byteStream});
 
-  @override
-  List<Object?> get props => [byteStream];
-
-  @override
-  bool? get stringify => true;
-
-  LoadingState copyWith({Uint8List? byteStream}) {
+    LoadingState copyWith({Uint8List? byteStream}) {
     return LoadingState(
       byteStream: byteStream ?? this.byteStream,
     );
   }
+
+  @override
+  List<Object?> get props => [byteStream];
 }
