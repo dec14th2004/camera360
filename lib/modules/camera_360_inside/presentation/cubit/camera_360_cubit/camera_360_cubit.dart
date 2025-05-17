@@ -43,17 +43,17 @@ class Camera360Cubit extends Cubit<Camera360State> {
     this.userHelperTiltRightText,
   }) : super(Camera360State(
     selectedCameraKey: userSelectedCameraKey ?? 0,
-    //nrPhotos: userNrPhotos ?? 20,
-     nrPhotos: userNrPhotos ?? 1,
+    nrPhotos: userNrPhotos ?? 20,
+    // nrPhotos: userNrPhotos ?? 1,
     capturedImageWidth: userCapturedImageWidth ?? 1000,
     capturedImageQuality: userCapturedImageQuality ?? 50,
     deviceVerticalCorrectDeg: userDeviceVerticalCorrectDeg ?? 85,
     loadingText: userLoadingText ?? 'Preparing images...',
     helperText: userHelperText ?? 'Point the camera at the dot',
-   //degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
-     degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 360,
-   //degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
-     degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 360,
+   degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
+    // degreesPerPhotos: (userNrPhotos != null) ? 360 / userNrPhotos : 360,
+   degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 18,
+     //degToNextPosition: (userNrPhotos != null) ? 360 / userNrPhotos : 360,
   )) {
     _setupSensors();
     _setupCameras();
@@ -93,10 +93,10 @@ class Camera360Cubit extends Cubit<Camera360State> {
         return;
       }
 
-      var storageStatus = await Permission.storage.request();
-      if (!storageStatus.isGranted) {
-        debugPrint("'Panorama360': Storage permission denied");
-      }
+      // var storageStatus = await Permission.storage.request();
+      // if (!storageStatus.isGranted) {
+      //   debugPrint("'Panorama360': Storage permission denied");
+      // }
     }
 
     try {
@@ -156,7 +156,7 @@ class Camera360Cubit extends Cubit<Camera360State> {
         debugPrint("'Panorama360': Failed Deleting panorama image: ${capturedImage.path}");
       }
     }
-    emit(state.copyWith(capturedImages: [], capturedImagesForDeletion: []));
+   emit(state.copyWith(capturedImages: [], capturedImagesForDeletion: []));
   }
 
   Future<void> removeLastCapturedImage() async {
@@ -193,7 +193,7 @@ class Camera360Cubit extends Cubit<Camera360State> {
       takingPicture: false,
       isWaitingToTakePhoto: false,
       nrPhotosTaken: 0,
-      imageSaved: false,
+     // imageSaved: false,
       lastPhoto: false,
       lastPhotoTaken: false,
       captureComplete: false,
@@ -248,17 +248,17 @@ class Camera360Cubit extends Cubit<Camera360State> {
       // XFile compressedImage = await resizeImage(File(file.path));
       XFile compressedImage = file;
       if (state.nrPhotosTaken < state.nrPhotos) {
-        try {
-          //    debugPrint("'Panorama360': Attempting to save photo to gallery: ${compressedImage.path}");
-          bool? saved = await GallerySaver.saveImage(compressedImage.path, albumName: 'Camera360');
-          if (saved == true) {
-            //      debugPrint("'Panorama360': Photo saved to gallery successfully");
-          } else {
-            //      debugPrint("'Panorama360': Failed to save photo to gallery");
-          }
-        } catch (e) {
-          debugPrint("'Panorama360': Error saving photo to gallery: $e");
-        }
+        // try {
+        //   //    debugPrint("'Panorama360': Attempting to save photo to gallery: ${compressedImage.path}");
+        //   bool? saved = await GallerySaver.saveImage(compressedImage.path, albumName: 'Camera360');
+        //   if (saved == true) {
+        //     //      debugPrint("'Panorama360': Photo saved to gallery successfully");
+        //   } else {
+        //     //      debugPrint("'Panorama360': Failed to save photo to gallery");
+        //   }
+        // } catch (e) {
+        //   debugPrint("'Panorama360': Error saving photo to gallery: $e");
+        // }
         final newImages = List<XFile>.from(state.capturedImages)..add(compressedImage);
         debugPrint("'Panorama360': Updating state, nrPhotosTaken: ${state.nrPhotosTaken + 1}, firstPhotoTaken: ${state.nrPhotosTaken == 0}, manualCapture: ${state.nrPhotosTaken == 0 ? false : state.manualCapture}");
         emit(state.copyWith(

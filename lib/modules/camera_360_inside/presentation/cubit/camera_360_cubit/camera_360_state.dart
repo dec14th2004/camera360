@@ -50,7 +50,7 @@ class Camera360State extends Equatable {
   final String helperTiltRightText;
 
   // Flags
-  final bool imageSaved;
+ // final bool imageSaved;
   final bool lastPhoto;
   final bool lastPhotoTaken;
 
@@ -87,12 +87,12 @@ class Camera360State extends Equatable {
     this.rightRanges = const [],
     this.horizontalMovementNeeded = 0,
     this.lastSuccessHorizontalPosition = 0,
-   // this.nrPhotos = 20,
-    this.nrPhotos = 1,
-    //this.degreesPerPhotos = 18,
-    this.degreesPerPhotos = 360,
-   // this.degToNextPosition = 18,
-    this.degToNextPosition = 360,
+    this.nrPhotos = 20,
+    //this.nrPhotos = 1,
+    this.degreesPerPhotos = 18,
+   // this.degreesPerPhotos = 360,
+    this.degToNextPosition = 18,
+    //this.degToNextPosition = 360,
     this.deviceVerticalCorrectDeg = 85,
     this.capturedImageWidth = 1000,
     this.capturedImageQuality = 50,
@@ -101,7 +101,7 @@ class Camera360State extends Equatable {
     this.helperText = 'Point the camera at the dot',
     this.helperTiltLeftText = 'Tilt left',
     this.helperTiltRightText = 'Tilt right',
-    this.imageSaved = false,
+   // this.imageSaved = false,
     this.lastPhoto = false,
     this.lastPhotoTaken = false,
     this.firstPhotoTaken = false,
@@ -143,7 +143,7 @@ class Camera360State extends Equatable {
     String? helperText,
     String? helperTiltLeftText,
     String? helperTiltRightText,
-    bool? imageSaved,
+  //  bool? imageSaved,
     bool? lastPhoto,
     bool? lastPhotoTaken,
     bool? firstPhotoTaken,
@@ -184,7 +184,7 @@ class Camera360State extends Equatable {
       helperText: helperText ?? this.helperText,
       helperTiltLeftText: helperTiltLeftText ?? this.helperTiltLeftText,
       helperTiltRightText: helperTiltRightText ?? this.helperTiltRightText,
-      imageSaved: imageSaved ?? this.imageSaved,
+    //  imageSaved: imageSaved ?? this.imageSaved,
       lastPhoto: lastPhoto ?? this.lastPhoto,
       lastPhotoTaken: lastPhotoTaken ?? this.lastPhotoTaken,
       firstPhotoTaken: firstPhotoTaken ?? this.firstPhotoTaken,
@@ -228,7 +228,7 @@ class Camera360State extends Equatable {
     helperText,
     helperTiltLeftText,
     helperTiltRightText,
-    imageSaved,
+  //  imageSaved,
     lastPhoto,
     lastPhotoTaken,
     firstPhotoTaken,
