@@ -20,22 +20,32 @@ class LoadingScreen extends StatelessWidget {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
     return BlocProvider(
-      create: (context) => LoadingCubit(
-        images: images,
-        uploadImageUseCase: getIt.get<UploadImageUsecase>(),
-      ),
+      create:
+          (context) => LoadingCubit(
+            images: images,
+            uploadImageUseCase: getIt.get<UploadImageUsecase>(),
+          )..uploadImages(images),
       child: BlocListener<LoadingCubit, LoadingState>(
         listener: (context, state) {
           if (state.byteStream.isNotEmpty) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => ImageViewScreen(byteStream: state.byteStream)),
+              MaterialPageRoute(
+                builder:
+                    (context) => ImageViewScreen(byteStream: state.byteStream),
+              ),
             );
-          } else {
+          } else if (state.error != null) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to load panorama image')),
+              SnackBar(
+                content: Text(state.error!),
+                backgroundColor: Colors.red,
+              ),
             );
-            Navigator.pop(context);
+            // Quay lại màn hình trước (hoặc xử lý theo yêu cầu)
+            Future.delayed(Duration(seconds: 2), () {
+              Navigator.pop(context);
+            });
           }
         },
         child: WillPopScope(
@@ -70,7 +80,9 @@ class LoadingScreen extends StatelessWidget {
               builder: (context, constraints) {
                 return SingleChildScrollView(
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
                     child: IntrinsicHeight(
                       child: Column(
                         children: [
@@ -94,7 +106,11 @@ class LoadingScreen extends StatelessWidget {
                                   SizedBox(height: 8),
                                   Text(
                                     'Please wait...',
-                                    style: TextStyle(fontSize: 16, color: Color(0xFF00284B), fontFamily: 'Inter'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF00284B),
+                                      fontFamily: 'Inter',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -109,7 +125,9 @@ class LoadingScreen extends StatelessWidget {
                                     alignment: Alignment.center,
                                     children: [
                                       SizedBox(
-                                        width: MediaQuery.of(context).size.width * 2,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                            2,
                                         child: Lottie.asset(
                                           'packages/flutter_plugin_camera360/lib/assets/lotte/TFOYB36zfH.json',
                                           fit: BoxFit.contain,
@@ -117,7 +135,9 @@ class LoadingScreen extends StatelessWidget {
                                       ),
                                       SvgPicture.asset(
                                         'packages/flutter_plugin_camera360/lib/assets/images/Icons.svg',
-                                        width: MediaQuery.of(context).size.width * 0.35,
+                                        width:
+                                            MediaQuery.of(context).size.width *
+                                            0.35,
                                         fit: BoxFit.contain,
                                       ),
                                     ],
@@ -125,7 +145,10 @@ class LoadingScreen extends StatelessWidget {
                                   const SizedBox(height: 16),
                                   const Text(
                                     'Creating 360 Room Image ...',
-                                    style: TextStyle(fontSize: 16, color: Color(0xFF688094)),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Color(0xFF688094),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -133,8 +156,13 @@ class LoadingScreen extends StatelessWidget {
                           ),
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                            decoration: const BoxDecoration(color: Colors.white),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 20,
+                              horizontal: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.end,
@@ -142,7 +170,11 @@ class LoadingScreen extends StatelessWidget {
                                 const Text(
                                   "Feel free to return to the homepage. We'll notify you when it's completed.",
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(fontSize: 16, fontFamily: 'Inter', color: Color(0xFF4E6A82)),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    color: Color(0xFF4E6A82),
+                                  ),
                                 ),
                                 const SizedBox(height: 20),
                                 ElevatedButton(
@@ -151,13 +183,23 @@ class LoadingScreen extends StatelessWidget {
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF00284B),
-                                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 32,
+                                      vertical: 12,
+                                    ),
                                     shape: const RoundedRectangleBorder(),
-                                    minimumSize: const Size(double.infinity, 48),
+                                    minimumSize: const Size(
+                                      double.infinity,
+                                      48,
+                                    ),
                                   ),
                                   child: const Text(
                                     'BACK TO HOME SCREEN',
-                                    style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Inter'),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontFamily: 'Inter',
+                                    ),
                                   ),
                                 ),
                               ],

@@ -3,15 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/screens/loading_screen/loading_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:io';
+import 'dart:typed_data';
 
-import '../cubit/video_loading/loading_cubit.dart';
 import '../cubit/video_stop_notify/stop_notify_cubit.dart';
-
 
 Future<String?> showStopNotifyBottomSheet({
   required BuildContext context,
-  required File videoFile,
+  required List<Uint8List> images, // Changed from videoFile to images
   required List<CameraDescription> cameras,
   required CameraController cameraController,
 }) {
@@ -19,36 +17,36 @@ Future<String?> showStopNotifyBottomSheet({
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16.0))),
-    builder:
-        (context) => BlocProvider(
-          create: (context) => StopNotifyCubit(),
-          child: Builder(
-            builder:
-                (newContext) => _StopNotifyBottomSheet(
-                  context: newContext,
-                  cameras: cameras,
-                  cameraController: cameraController,
-                ),
-          ),
+    builder: (context) => BlocProvider(
+      create: (context) => StopNotifyCubit(),
+      child: Builder(
+        builder: (newContext) => _StopNotifyBottomSheet(
+          context: newContext,
+          images: images,
+          cameras: cameras,
+          cameraController: cameraController,
         ),
+      ),
+    ),
   );
 }
 
 class _StopNotifyBottomSheet extends StatelessWidget {
   final BuildContext context;
+  final List<Uint8List> images;
   final List<CameraDescription> cameras;
   final CameraController cameraController;
 
   const _StopNotifyBottomSheet({
     Key? key,
     required this.context,
+    required this.images,
     required this.cameras,
     required this.cameraController,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
     return BlocListener<StopNotifyCubit, StopNotifyState>(
       listener: (context, state) {
         if (state is StopNotifyActionSelected) {
@@ -68,7 +66,7 @@ class _StopNotifyBottomSheet extends StatelessWidget {
             SvgPicture.asset('packages/flutter_plugin_camera360/lib/assets/images/Icon.svg', width: 80, height: 80),
             const SizedBox(height: 16.0),
             const Text(
-              'Complete the Video\n Recording',
+              'Complete the Image\n Capture',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: 'Intel',
@@ -79,7 +77,7 @@ class _StopNotifyBottomSheet extends StatelessWidget {
             ),
             const SizedBox(height: 30.0),
             const Text(
-              'Confirm your use of this video to create your \nimmersive 360 tour.',
+              'Confirm your use of these images to create your \nimmersive 360 tour.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14.0, color: Color(0xFF00284B)),
             ),
@@ -91,7 +89,7 @@ class _StopNotifyBottomSheet extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () {
-                       // context.read<StopNotifyCubit>().selectRetry();
+                        context.read<StopNotifyCubit>().selectRetry();
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: const Color(0xFF00284B),
@@ -106,17 +104,18 @@ class _StopNotifyBottomSheet extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
+                        // Navigate to LoadingScreen and trigger upload
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LoadingScreen(images: context.read<LoadingCubit>().images),
+                            builder: (context) => LoadingScreen(images: images),
                           ),
                         );
                         context.read<StopNotifyCubit>().selectComplete();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF00284B),
-                        padding: const EdgeInsets.symmetric( vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                       ),
                       child: const Text(

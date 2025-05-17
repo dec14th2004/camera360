@@ -2,7 +2,6 @@ import 'package:app_util/helpers/api_config.dart';
 import 'package:app_util/services/api_service.dart';
 import 'package:flutter_plugin_camera360/helper/api_path.dart';
 import 'package:get_it/get_it.dart';
-
 import 'data/data_source/remote/image_panorama_remote.dart';
 import 'data/repo/data_image_panorama_repository.dart';
 import 'domain/repositories/image_panorama_repository.dart';
@@ -16,33 +15,21 @@ void configPanoramaDI(
   PackageApiPath apiPath,
 ) {
   if (!injector.isRegistered<ImagePanoramaRemote>()) {
-    injector.registerSingleton<ApiConfig>(
-    apiServiceConfig,
-    instanceName: 'apiServiceConfig',
-  );
-  
-  injector.registerSingleton<ApiService>(
-    apiService,
-    instanceName: 'apiService',
-  );
-
-  injector.registerFactory<ImagePanoramaRemote>(
-    () => ImagePanoramaRemote(
-      apiService: injector.get<ApiService>(instanceName: 'apiService'),
-      apiConfig: injector.get<ApiConfig>(instanceName: 'apiConfig'),
-      apiPath: apiPath,
-    ),
-  );
-
-  injector.registerFactory<ImagePanoramaRepository>(
-    () => DataImagePanoramaRepository(
-      remote: injector.get<ImagePanoramaRemote>(),
-    ),
-  );
-
-  injector.registerFactory<UploadImageUsecase>(
-    () => UploadImageUsecase(repo: injector.get<ImagePanoramaRepository>()),
-  );
+    injector.registerFactory<ImagePanoramaRemote>(
+      () => ImagePanoramaRemote(
+        apiService: injector.get<ApiService>(instanceName: 'apiService'),
+        apiConfig: injector.get<ApiConfig>(instanceName: 'apiServiceConfig'),
+        apiPath: apiPath,
+      ),
+    );
+    injector.registerFactory<ImagePanoramaRepository>(
+      () => DataImagePanoramaRepository(
+        remote: injector.get<ImagePanoramaRemote>(),
+      ),
+    );
+    injector.registerFactory<UploadImageUsecase>(
+      () => UploadImageUsecase(repo: injector.get<ImagePanoramaRepository>()),
+    );
   }
 }
 
@@ -52,7 +39,7 @@ void configPostPanoramaDI(
   ApiService aiAPIService,
   PackageApiPath apiPath,
 ) {
-  if(!injector.isRegistered<ImagePanoramaRemote>()) {
+  if (!injector.isRegistered<ImagePanoramaRemote>()) {
     injector.registerSingleton<ApiConfig>(
       aiAPIServiceConfig,
       instanceName: 'aiAPIServiceConfig',
@@ -80,4 +67,3 @@ void configPostPanoramaDI(
     );
   }
 }
- 

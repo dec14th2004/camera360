@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:camera/camera.dart';
 import 'package:dchs_motion_sensors/dchs_motion_sensors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
 import 'package:wakelock_plus/wakelock_plus.dart';
+import '../../../../../helper/image_panorama_controller.dart';
+import '../../../domain/use_cases/upload_image_usecase.dart';
 import 'camera_360_state.dart';
 
 class Camera360Cubit extends Cubit<Camera360State> {
@@ -465,27 +467,32 @@ class Camera360Cubit extends Cubit<Camera360State> {
     return deviceRotationDeg <= Camera360State.helperDotRotationTolerance;
   }
 
-  Future<void> prepareOnCaptureEnded() async {
-    try {
-      Map<String, dynamic> returnedData = {
-        'success': state.capturedImages.isNotEmpty,
-        'images': state.capturedImages,
-        'options': {
-          'selected_camera': state.selectedCameraKey,
-          'vertical_camera_angle': state.deviceVerticalCorrectDeg,
-        },
-      };
-
-      await onCaptureEnded(returnedData);
-      emit(state.copyWith(captureComplete: true));
-
-      await Future.delayed(const Duration(seconds: 1));
-      restartApp(reason: "Auto-restart after capture completion");
-    } catch (e) {
-      debugPrint("'Panorama360': Error in prepareOnCaptureEnded: $e");
-      restartApp(reason: "Auto-restart after error");
+Future<void> prepareOnCaptureEnded() async {
+  try {
+    // Convert XFile images to Uint8List
+    List<Uint8List> imageBytes = [];
+    for (var image in state.capturedImages) {
+      final bytes = await File(image.path).readAsBytes();
+      imageBytes.add(bytes);
     }
+
+    Map<String, dynamic> returnedData = {
+      'success': state.capturedImages.isNotEmpty,
+      'images': imageBytes,
+      'options': {
+        'selected_camera': state.selectedCameraKey,
+        'vertical_camera_angle': state.deviceVerticalCorrectDeg,
+      },
+    };
+
+    await onCaptureEnded(returnedData);
+    _disableSensors(); // Tắt cảm biến để ngăn cập nhật trạng thái
+    emit(state.copyWith(captureComplete: true, hasShownBottomSheet: false)); // Đặt hasShownBottomSheet = false
+  } catch (e) {
+    debugPrint("'Panorama360': Error in prepareOnCaptureEnded: $e");
+    emit(state.copyWith(captureComplete: false, hasShownBottomSheet: false));
   }
+}
 
   bool _morePhotosNeeded() {
     return state.nrPhotosTaken < state.nrPhotos;

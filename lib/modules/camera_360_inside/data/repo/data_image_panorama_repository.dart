@@ -18,7 +18,7 @@ class DataImagePanoramaRepository implements ImagePanoramaRepository {
   @override
   Future<DataState<ImagePanorama>> uploadListImages (UploadImagePanoramaUsecaseParams params) {
     return remote
-        .uploadListImages(params.images)
+        .uploadListImages(params)
         .tryCatch(
           handler: (res) {
             final model = ImagePanoramaUploadModel(images: res.data);

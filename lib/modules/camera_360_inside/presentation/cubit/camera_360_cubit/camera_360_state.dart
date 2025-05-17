@@ -25,6 +25,7 @@ class Camera360State extends Equatable {
   final int progressPercentage;
   final bool firstPhotoTaken;
   final bool manualCapture;
+  final bool hasShownBottomSheet;
 
   // Helper dot positioning
   final double helperDotHorizontalReach;
@@ -106,6 +107,7 @@ class Camera360State extends Equatable {
     this.lastPhotoTaken = false,
     this.firstPhotoTaken = false,
     this.manualCapture = true,
+    this.hasShownBottomSheet = false,
     this.targetCenteredDotPosX = 0.48, // Tỷ lệ X (0.0 - 1.0) so với containerWidth
     this.targetCenteredDotPosY = 0.5, // Tỷ lệ Y (0.0 - 1.0) so với containerHeight
   }) : absoluteOrientation = absoluteOrientation ?? Vector3.zero();
@@ -150,6 +152,7 @@ class Camera360State extends Equatable {
     bool? manualCapture,
     double? targetCenteredDotPosX,
     double? targetCenteredDotPosY,
+    bool? hasShownBottomSheet,
   }) {
     return Camera360State(
       isInitialized: isInitialized ?? this.isInitialized,
@@ -191,6 +194,7 @@ class Camera360State extends Equatable {
       manualCapture: manualCapture ?? this.manualCapture,
       targetCenteredDotPosX: targetCenteredDotPosX ?? this.targetCenteredDotPosX,
       targetCenteredDotPosY: targetCenteredDotPosY ?? this.targetCenteredDotPosY,
+      hasShownBottomSheet: hasShownBottomSheet ?? this.hasShownBottomSheet,
     );
   }
 
@@ -233,6 +237,7 @@ class Camera360State extends Equatable {
     lastPhotoTaken,
     firstPhotoTaken,
     manualCapture,
+    hasShownBottomSheet,
     targetCenteredDotPosX,
     targetCenteredDotPosY,
   ];
