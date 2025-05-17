@@ -7,6 +7,8 @@ import 'package:app_util/services/api_service.dart';
 import 'package:flutter_plugin_camera360/helper/api_path.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../domain/use_cases/upload_image_usecase.dart';
+
 class ImagePanoramaRemote extends BaseRemoteDataSource {
   @override
   final ApiService apiService;
@@ -17,13 +19,13 @@ class ImagePanoramaRemote extends BaseRemoteDataSource {
   ImagePanoramaRemote({required this.apiService, required this.apiConfig, required this.apiPath})
   : super(apiService: apiService, apiConfig: apiConfig);
 
-  Future<ApiResponse> uploadListImages(List<Uint8List> images) async {
+  Future<ApiResponse> uploadListImages(UploadImagePanoramaUsecaseParams params) async {
     return await apiService.post(
-      isHttps: false,
+      isHttps: true,
       isFormData: true,
       apiConfig.domain,
       apiPath.uploadListImages,
-      files: List.generate( images.length, (index) => http.MultipartFile.fromBytes("file", images[index], filename: "image_$index.jpg")),
+      files: List.generate( params.images.length, (index) => http.MultipartFile.fromBytes("file", params.images[index], filename: "image_$index.jpg")),
     );
   }
 

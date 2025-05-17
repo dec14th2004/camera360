@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data'; // Thêm để xử lý Uint8List
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/camera_360_cubit/camera_360_state.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/components/stop_notify_bottom_sheet.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/components/grid_painter.dart';
@@ -8,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/cubit/camera_360_cubit/camera_360_cubit.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/components/balance_bar_indicator.dart';
-import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/components/camera_selector.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/components/helper_text.dart';
 import 'package:flutter_plugin_camera360/modules/camera_360_inside/presentation/components/orientation_helpers.dart';
 import 'package:flutter_svg/svg.dart';
@@ -88,6 +88,7 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
 
   @override
   Widget build(BuildContext context) {
+    // Ẩn thanh trạng thái và điều hướng
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     return BlocProvider(
       create: (context) {
@@ -108,23 +109,27 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
         return _cubit!;
       },
       child: BlocConsumer<Camera360Cubit, Camera360State>(
-        listener: (context, state) {
-          if (state.captureComplete && ModalRoute.of(context)?.isCurrent == true) {
-            showStopNotifyBottomSheet(
-              context: context,
-              videoFile: state.capturedImages.isNotEmpty ? File(state.capturedImages.last.path) : File(''),
-              cameras: state.cameras,
-              cameraController: state.controller!,
-            ).then((result) {
-              if (result == 'Retry') {
-                context.read<Camera360Cubit>().restartApp(reason: "Retry selected from bottom sheet");
-              } else if (result == 'Complete') {
-                context.read<Camera360Cubit>().restartApp(reason: "Complete selected from bottom sheet");
-              }
-            });
-          }
-        },
+        listener: (context, state) async {
+    if (state.captureComplete && !state.hasShownBottomSheet && ModalRoute.of(context)?.isCurrent == true) {
+      // Đặt hasShownBottomSheet = true ngay lập tức
+      context.read<Camera360Cubit>().emit(state.copyWith(hasShownBottomSheet: true));
+
+      showStopNotifyBottomSheet(
+        context: context,
+        images: state.capturedImages.map((image) => File(image.path).readAsBytesSync()).toList(), // Chuyển đổi đồng bộ để nhanh hơn
+        cameras: state.cameras,
+        cameraController: state.controller!,
+      ).then((result) {
+        if (result == 'Retry') {
+          context.read<Camera360Cubit>().restartApp(reason: "Retry được chọn từ bottom sheet");
+        } else if (result == 'Complete') {
+          // Không cần làm gì, LoadingScreen sẽ xử lý
+        }
+      });
+    }
+  },
         builder: (context, state) {
+          // Hiển thị loading nếu camera chưa sẵn sàng
           if (!state.isReady || !state.isInitialized || state.controller == null) {
             return widget.cameraNotReadyContent ?? const Center(child: CircularProgressIndicator());
           }
@@ -134,6 +139,7 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
               double containerWidth = constraints.maxWidth;
               double containerHeight = constraints.maxHeight;
 
+              // Tính toán góc xoay thiết bị
               double deviceVerticalDeg = double.parse(degrees(state.absoluteOrientation.y).toStringAsFixed(1));
               double deviceHorizontalDeg = double.parse(
                   (360 - degrees(state.absoluteOrientation.x + state.absoluteOrientation.z) % 360).toStringAsFixed(1));
@@ -141,12 +147,12 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
 
               if (state.firstPhotoTaken) {
                 context.read<Camera360Cubit>().updateDeviceOrientation(
-                  deviceVerticalDeg: deviceVerticalDeg,
-                  deviceHorizontalDeg: deviceHorizontalDeg,
-                  deviceRotationDeg: deviceRotationDeg,
-                  containerWidth: containerWidth,
-                  containerHeight: containerHeight,
-                );
+                      deviceVerticalDeg: deviceVerticalDeg,
+                      deviceHorizontalDeg: deviceHorizontalDeg,
+                      deviceRotationDeg: deviceRotationDeg,
+                      containerWidth: containerWidth,
+                      containerHeight: containerHeight,
+                    );
               }
 
               bool isDeviceRotationCorrect = context.read<Camera360Cubit>().checkDeviceRotation(deviceRotationDeg);
@@ -168,245 +174,262 @@ class _Camera360State extends State<Camera360> with WidgetsBindingObserver, Grid
                 backgroundColor: Colors.black,
                 body: state.nrPhotosTaken < state.nrPhotos || state.captureComplete
                     ? Stack(
-                  children: [
-                    Center(
-                      child: GestureDetector(
-                        onTapDown: (details) async {
-                          // try {
-                          final tapPosition = details.localPosition;
-                          final x = tapPosition.dx / containerWidth;
-                          final y = tapPosition.dy / containerHeight;
+                        children: [
+                          Center(
+                            child: GestureDetector(
+                              onTapDown: (details) async {
+                                try {
+                                  final tapPosition = details.localPosition;
+                                  final x = tapPosition.dx / containerWidth;
+                                  final y = tapPosition.dy / containerHeight;
 
-                          await state.controller!.setFocusPoint(Offset(x, y));
-                          await state.controller!.setFocusMode(FocusMode.auto);
-                          //} catch (e) {
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   const SnackBar(content: Text('Error setting focus')),
-                          // );
-                          // }
-                        },
-                        child: Stack(
-                          children: [
-                            CameraPreview(state.controller!),
-                             gridPainter(),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    if ( state.manualCapture && !state.firstPhotoTaken)
-                      BalanceBarIndicator(
-                        containerWidth: containerWidth,
-                        containerHeight: containerHeight,
-                        deviceRotationDeg: deviceRotationDeg,
-                        isDeviceRotationCorrect: isDeviceRotationCorrect,
-                        deviceInCorrectPosition: state.deviceInCorrectPosition,
-                        firstPhotoTaken: state.firstPhotoTaken,
-                        onTutorialCompleted: () {
-                          setState(() {
-                            isTutorialCompleted = true;
-                          });
-                        },
-                      ),
-
-                    if (state.manualCapture && !state.firstPhotoTaken)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Center(
-                          child: GestureDetector(
-                            onTap: () {
-                              context.read<Camera360Cubit>().manualTakePicture();
-                            },
-                            child: SvgPicture.asset(
-                              'packages/flutter_plugin_camera360/lib/assets/images/Oval.svg',
-                              width: 75,
-                              height: 75,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: EdgeInsets.only(
-                            top: MediaQuery.of(context).padding.top + 5,
-                          ),
-                          color: Colors.black.withOpacity(0.4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 12),
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    await context.read<Camera360Cubit>().deletePanoramaImages();
-                                    context.read<Camera360Cubit>().restartApp(
-                                      reason: "Back button pressed",
-                                      clearCache: true,
-                                    );
-                                  },
-                                  child: const Icon(
-                                    Icons.arrow_back,
-                                    color: Colors.white,
-                                    size: 30,
-                                  ),
-                                ),
-                              ),
-                              if (state.takingPicture || state.isWaitingToTakePhoto)
-                                Padding(
-                                  padding: EdgeInsets.only(right: 10),
-                                  child: Lottie.asset(
-                                    'packages/flutter_plugin_camera360/lib/assets/lotte/Animation-1747120515158.json',
-                                    width: 75,
-                                    height: 75,
-                                  ),
-                                ),
-                             // if (widget.cameraSelectorShow)
-                                // CameraSelector(
-                                //   cameras: state.cameras,
-                                //   selectedCameraKey: state.selectedCameraKey,
-                                //   infoPopUpContent: widget.cameraSelectorInfoPopUpContent,
-                                //   infoPopUpShow: widget.cameraSelectorInfoPopUpShow,
-                                //   onCameraChanged: (cameraKey) {
-                                //     context.read<Camera360Cubit>().selectCamera(cameraKey);
-                                //   },
-                                // ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    if (state.firstPhotoTaken)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Center(
-                          child: Container(
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 80,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  await state.controller!.setFocusPoint(Offset(x, y));
+                                  await state.controller!.setFocusMode(FocusMode.auto);
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Lỗi khi đặt điểm lấy nét')),
+                                  );
+                                }
+                              },
+                              child: Stack(
                                 children: [
-                                  Flexible(
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(width: 16),
-                                        Text(
-                                          "${state.progressPercentage}%",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      if (state.capturedImages.isNotEmpty &&
-                                          ModalRoute.of(context)?.isCurrent == true) {
-                                        showStopNotifyBottomSheet(
-                                          context: context,
-                                          videoFile: File(state.capturedImages.last.path),
-                                          cameras: state.cameras,
-                                          cameraController: state.controller!,
-                                        ).then((result) {
-                                          if (result == 'Retry') {
-                                            context.read<Camera360Cubit>().restartApp(reason: "Retry selected from bottom sheet");
-                                          } else if (result == 'Complete') {
-                                            context.read<Camera360Cubit>().restartApp(reason: "Complete selected from bottom sheet");
-                                          }
-                                        });
-                                      }
-                                    },
-                                    highlightColor: Colors.blue.withOpacity(0.3),
-                                    splashColor: Colors.blue.withOpacity(0.3),
-                                    child: SvgPicture.asset(
-                                      'packages/flutter_plugin_camera360/lib/assets/images/Oval.svg',
-                                      width: 75,
-                                      height: 75,
-                                    ),
-                                  ),
-                                  Flexible(
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          width: 16,
-                                          height: 16,
-                                          margin: const EdgeInsets.only(right: 6),
-                                        ),
-                                        Text(
-                                          "${state.nrPhotosTaken}/${state.nrPhotos}",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  CameraPreview(state.controller!),
+                                  gridPainter(),
                                 ],
                               ),
                             ),
                           ),
+
+                          // Thanh cân bằng khi chụp thủ công
+                          if (state.manualCapture && !state.firstPhotoTaken)
+                            BalanceBarIndicator(
+                              containerWidth: containerWidth,
+                              containerHeight: containerHeight,
+                              deviceRotationDeg: deviceRotationDeg,
+                              isDeviceRotationCorrect: isDeviceRotationCorrect,
+                              deviceInCorrectPosition: state.deviceInCorrectPosition,
+                              firstPhotoTaken: state.firstPhotoTaken,
+                              onTutorialCompleted: () {
+                                setState(() {
+                                  isTutorialCompleted = true;
+                                });
+                              },
+                            ),
+
+                          // Nút chụp ảnh thủ công
+                          if (state.manualCapture && !state.firstPhotoTaken)
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    context.read<Camera360Cubit>().manualTakePicture();
+                                  },
+                                  child: SvgPicture.asset(
+                                    'packages/flutter_plugin_camera360/lib/assets/images/Oval.svg',
+                                    width: 75,
+                                    height: 75,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // Thanh trên cùng (nút quay lại, chọn camera, loading)
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).padding.top + 5,
+                              ),
+                              color: Colors.black.withOpacity(0.4),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 12),
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        await context.read<Camera360Cubit>().deletePanoramaImages();
+                                        context.read<Camera360Cubit>().restartApp(
+                                              reason: "Nút quay lại được nhấn",
+                                              clearCache: true,
+                                            );
+                                      },
+                                      child: const Icon(
+                                        Icons.arrow_back,
+                                        color: Colors.white,
+                                        size: 30,
+                                      ),
+                                    ),
+                                  ),
+                                  if (state.takingPicture || state.isWaitingToTakePhoto)
+                                    Padding(
+                                      padding: EdgeInsets.only(right: 10),
+                                      child: Lottie.asset(
+                                        'packages/flutter_plugin_camera360/lib/assets/lotte/Animation-1747120515158.json',
+                                        width: 75,
+                                        height: 75,
+                                      ),
+                                    ),
+                                  // Bỏ comment nếu muốn bật chọn camera
+                                  // if (widget.cameraSelectorShow)
+                                  //   CameraSelector(
+                                  //     cameras: state.cameras,
+                                  //     selectedCameraKey: state.selectedCameraKey,
+                                  //     infoPopUpContent: widget.cameraSelectorInfoPopUpContent,
+                                  //     infoPopUpShow: widget.cameraSelectorInfoPopUpShow,
+                                  //     onCameraChanged: (cameraKey) {
+                                  //       context.read<Camera360Cubit>().selectCamera(cameraKey);
+                                  //     },
+                                  //   ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // Thanh dưới cùng (hiển thị tiến trình và nút dừng)
+                          if (state.firstPhotoTaken)
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 80,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Flexible(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const SizedBox(width: 16),
+                                              Text(
+                                                "${state.progressPercentage}%",
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () async {
+                                            if (state.capturedImages.isNotEmpty &&
+                                                ModalRoute.of(context)?.isCurrent == true) {
+                                              // Chuyển XFile thành Uint8List
+                                              List<Uint8List> imageBytes = [];
+                                              for (var image in state.capturedImages) {
+                                                final bytes = await File(image.path).readAsBytes();
+                                                imageBytes.add(bytes);
+                                              }
+
+                                              showStopNotifyBottomSheet(
+                                                context: context,
+                                                images: imageBytes,
+                                                cameras: state.cameras,
+                                                cameraController: state.controller!,
+                                              ).then((result) {
+                                                if (result == 'Retry') {
+                                                  context
+                                                      .read<Camera360Cubit>()
+                                                      .restartApp(reason: "Retry được chọn từ bottom sheet");
+                                                } else if (result == 'Complete') {
+                                                  // Không gọi restartApp, để LoadingScreen xử lý
+                                                }
+                                              });
+                                            }
+                                          },
+                                          highlightColor: Colors.blue.withOpacity(0.3),
+                                          splashColor: Colors.blue.withOpacity(0.3),
+                                          child: SvgPicture.asset(
+                                            'packages/flutter_plugin_camera360/lib/assets/images/Oval.svg',
+                                            width: 75,
+                                            height: 75,
+                                          ),
+                                        ),
+                                        Flexible(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                width: 16,
+                                                height: 16,
+                                                margin: const EdgeInsets.only(right: 6),
+                                              ),
+                                              Text(
+                                                "${state.nrPhotosTaken}/${state.nrPhotos}",
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // Văn bản hướng dẫn khi chưa chụp ảnh đầu tiên
+                          if (state.firstPhotoTaken)
+                            HelperText(
+                              shown: state.capturedImages.isEmpty &&
+                                  (!state.helperDotVerticalInPos || !state.helperDotIsHorizontalInPos),
+                              helperText: state.helperText,
+                            ),
+
+                          // Văn bản hướng dẫn khi cần điều chỉnh góc xoay
+                          if (state.firstPhotoTaken)
+                            HelperText(
+                              shown: state.helperDotVerticalInPos &&
+                                  state.helperDotIsHorizontalInPos &&
+                                  !isDeviceRotationCorrect,
+                              helperText: context.read<Camera360Cubit>().checkLeftDeviceRotation(deviceRotationDeg)
+                                  ? state.helperTiltLeftText
+                                  : state.helperTiltRightText,
+                            ),
+
+                          // Hiển thị điểm định hướng và trợ giúp
+                          if (state.firstPhotoTaken || isTutorialCompleted)
+                            OrientationHelpers(
+                              helperDotPosX: helperDotPosX,
+                              helperDotPosY: helperDotPosY,
+                              helperDotRadius: Camera360State.helperDotRadius,
+                              helperDotColor: helperDotColor,
+                              centeredDotPosX: centeredDotPosX,
+                              centeredDotRadius: Camera360State.centeredDotRadius,
+                              centeredDotPosY: centeredDotPosY,
+                              centeredDotBorder: Camera360State.centeredDotBorder,
+                              centeredDotColor: centeredDotColor,
+                              deviceInCorrectPosition: state.deviceInCorrectPosition,
+                              isDeviceRotationCorrect: isDeviceRotationCorrect,
+                              deviceRotationDeg: deviceRotationDeg,
+                              isWaitingToTakePhoto: state.isWaitingToTakePhoto,
+                              timeToWaitBeforeTakingPicture: state.timeToWaitBeforeTakingPicture,
+                              firstPhotoTaken: state.firstPhotoTaken,
+                              isTutorialCompleted: isTutorialCompleted,
+                            ),
+                        ],
+                      )
+                    : Center(
+                        child: Text(
+                          state.loadingText,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
-
-                    if (state.firstPhotoTaken)
-                      HelperText(
-                        shown: state.capturedImages.isEmpty &&
-                            (!state.helperDotVerticalInPos || !state.helperDotIsHorizontalInPos),
-                        helperText: state.helperText,
-                      ),
-
-                    if (state.firstPhotoTaken)
-                      HelperText(
-                        shown: state.helperDotVerticalInPos &&
-                            state.helperDotIsHorizontalInPos &&
-                            !isDeviceRotationCorrect,
-                        helperText: context.read<Camera360Cubit>().checkLeftDeviceRotation(deviceRotationDeg)
-                            ? state.helperTiltLeftText
-                            : state.helperTiltRightText,
-                      ),
-
-                    if (state.firstPhotoTaken || isTutorialCompleted)
-                      OrientationHelpers(
-                        helperDotPosX: helperDotPosX,
-                        helperDotPosY: helperDotPosY,
-                        helperDotRadius: Camera360State.helperDotRadius,
-                        helperDotColor: helperDotColor,
-                        centeredDotPosX: centeredDotPosX,
-                        centeredDotRadius: Camera360State.centeredDotRadius,
-                        centeredDotPosY: centeredDotPosY,
-                        centeredDotBorder: Camera360State.centeredDotBorder,
-                        centeredDotColor: centeredDotColor,
-                        deviceInCorrectPosition: state.deviceInCorrectPosition,
-                        isDeviceRotationCorrect: isDeviceRotationCorrect,
-                        deviceRotationDeg: deviceRotationDeg,
-                        isWaitingToTakePhoto: state.isWaitingToTakePhoto,
-                        timeToWaitBeforeTakingPicture: state.timeToWaitBeforeTakingPicture,
-                        firstPhotoTaken: state.firstPhotoTaken,
-                        isTutorialCompleted: isTutorialCompleted,
-                      ),
-                  ],
-                )
-                    : Center(
-                  child: Text(
-                    state.loadingText,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
               );
             },
           );
