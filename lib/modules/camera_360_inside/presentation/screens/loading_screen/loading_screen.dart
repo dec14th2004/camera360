@@ -111,12 +111,12 @@ class LoadingScreen extends StatelessWidget {
                                       SizedBox(
                                         width: MediaQuery.of(context).size.width * 2,
                                         child: Lottie.asset(
-                                          'packages/capture_360_inside/assets/lotte/TFOYB36zfH.json',
+                                          'packages/flutter_plugin_camera360/lib/assets/lotte/TFOYB36zfH.json',
                                           fit: BoxFit.contain,
                                         ),
                                       ),
                                       SvgPicture.asset(
-                                        'packages/capture_360_inside/assets/images/Icons.svg',
+                                        'packages/flutter_plugin_camera360/lib/assets/images/Icons.svg',
                                         width: MediaQuery.of(context).size.width * 0.35,
                                         fit: BoxFit.contain,
                                       ),
